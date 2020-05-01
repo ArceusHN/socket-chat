@@ -29,6 +29,7 @@ io.on('connection', (client) => {
 
 
         client.broadcast.to(data.sala).emit('listaPersona', usuarios.getPersonasPorSala(data.sala)) //Enviando la lista de personas
+        client.broadcast.to(data.sala).emit('crearMensaje', crearMensaje('Administrador', `${data.nombre} se unió`)) //Enviando un mensaje de que alguien salio
 
 
         callback( usuarios.getPersonasPorSala(data.sala) ) //Enviando la lista de las personas al cliente
@@ -36,13 +37,16 @@ io.on('connection', (client) => {
 
 
     //Un usuario enviando mensaje a todos
-    client.on('crearMensaje', (data)=>{ 
+    client.on('crearMensaje', (data, callback)=>{ 
 
         let persona = usuarios.getPersona(client.id)
 
         let mensaje = crearMensaje( persona.nombre, data.mensaje )
 
         client.broadcast.to(persona.sala).emit('crearMensaje', mensaje)
+
+
+        callback(mensaje)
 
     })
 
@@ -52,7 +56,9 @@ io.on('connection', (client) => {
         let personaBorrada = usuarios.borrarPersona( client.id )
 
         client.broadcast.to(personaBorrada.sala).emit('crearMensaje', crearMensaje('Administrador', `${personaBorrada.nombre} salió`)) //Enviando un mensaje de que alguien salio
-        client.broadcast.to(personaBorrada.sala).emit('listaPersona', usuarios.getPersonasPorSala()) //Enviando la lista de personas actualizada
+
+        console.log('Persona borrada: ',usuarios.getPersonasPorSala(personaBorrada.sala))
+        client.broadcast.to(personaBorrada.sala).emit('listaPersona', usuarios.getPersonasPorSala(personaBorrada.sala)) //Enviando la lista de personas actualizada
 
     })
 
